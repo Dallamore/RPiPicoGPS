@@ -5,6 +5,7 @@ import utime, time
 
 i2c=I2C(0,sda=Pin(0), scl=Pin(1), freq=400000)
 oled = SSD1306_I2C(128, 64, i2c)
+led = Pin(25, Pin.OUT)
 
 gpsModule = UART(1, baudrate=9600, tx=Pin(4), rx=Pin(5))
 print(gpsModule)
@@ -57,9 +58,12 @@ def convertToDegree(RawDegrees):
     Converted = '{0:.6f}'.format(Converted) 
     return str(Converted)
     
-    
+oled.fill(0)
+oled.text("Finding",0,10)
+oled.text("satellites",0,20)
+oled.show()   
 while True:
-    
+    led.off()
     getGPS(gpsModule)
 
     if(FIX_STATUS == True):
@@ -79,7 +83,10 @@ while True:
         oled.show()
         
         FIX_STATUS = False
-        
+        led.on()
+        ## turn on the led when writing to sd card, its a nice indicator
+        time.sleep(0.5)
+         
     if(TIMEOUT == True):
         print("----------------------")
         print("No GPS data is found.")
@@ -87,4 +94,6 @@ while True:
         oled.text("No GPS data.", 0, 50)
         oled.show()
         TIMEOUT = False
+        
+        
 
