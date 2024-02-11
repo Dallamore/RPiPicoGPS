@@ -5,8 +5,7 @@ import machine, os, sdcard
 from ssd1306 import SSD1306_I2C
 from micropyGPS import MicropyGPS
 
-
-i2c=I2C(0,sda=Pin(0), scl=Pin(1), freq=400000)
+i2c=I2C(0,sda=Pin(20), scl=Pin(21), freq=400000)
 oled = SSD1306_I2C(128, 64, i2c)
 
 # Initialize GPS module
@@ -14,10 +13,8 @@ gps_module = UART(1, baudrate=9600, tx=Pin(4), rx=Pin(5))
 time_zone = -3
 gps = MicropyGPS(time_zone)
 
-
-    
 # Assign chip select (CS) pin (and start it high)
-cs = machine.Pin(15, machine.Pin.OUT)
+cs = machine.Pin(14, machine.Pin.OUT)
 # Intialize SPI peripheral (start with 1 MHz)
 spi = machine.SPI(1,
                   baudrate=1000000,
@@ -32,13 +29,6 @@ spi = machine.SPI(1,
 sd = sdcard.SDCard(spi, cs)
 
 os.mount(sd, '/sd')
-
-
-
-
-
-
-
  
 def convert_coordinates(sections):
     if sections[0] == 0:  # sections[0] contains the degrees
@@ -55,7 +45,6 @@ def convert_coordinates(sections):
  
     data = '{0:.6f}'.format(data)  # 6 decimal places
     return str(data)
- 
  
 while True:
     length = gps_module.any()
@@ -74,7 +63,6 @@ while True:
         oled.show()
         continue
  
-    
     oled.fill(0)
     oled.text('Satellites: ' + str(gps.satellites_in_use), 10, 0)
     oled.text('Lat: ' + latitude, 0, 18)
@@ -84,9 +72,6 @@ while True:
  
     oled.show()
     
-
-
-
     # try some standard file operations
     file = open('/sd/test.txt', 'w')
     file.write('Lat: ' + latitude + ' Lon: ' + longitude)
@@ -96,41 +81,5 @@ while True:
     print(data + ' yo')
     file.close()
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     utime.sleep(3)
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-

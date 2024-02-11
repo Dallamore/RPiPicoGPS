@@ -1,9 +1,3 @@
-# cs = machine.Pin(17, machine.Pin.OUT)
-# sck=machine.Pin(18),
-# mosi=machine.Pin(19),
-# miso=machine.Pin(16))
-
-
 import machine, os, sdcard
 
 # Assign chip select (CS) pin (and start it high)
@@ -26,7 +20,7 @@ os.mount(sd, '/sd')
 
 # try some standard file operations
 file = open('/sd/test.txt', 'w')
-file.write('Testing SD card on Maker Pi Pico boobies lol')
+file.write('Testing SD card on Maker Pi Pico')
 file.close()
 file = open('/sd/test.txt', 'r')
 data = file.read()

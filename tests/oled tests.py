@@ -3,8 +3,33 @@ from ssd1306 import SSD1306_I2C
 import time
 WIDTH =128 
 HEIGHT= 64
-i2c=I2C(0,sda=Pin(0), scl=Pin(1), freq=400000)
+i2c=I2C(0,sda=Pin(20), scl=Pin(21), freq=400000)
 oled = SSD1306_I2C(128, 64, i2c)
+
+oled.fill(0)
+oled.hline(0,63,128,1)
+while True:
+    for i in range(0,64,8): # Draws a spike
+        oled.line(63,64-i,127-i,63,1)
+        oled.line(63,64-i,i,63,1)
+        oled.vline(63,64-i,i,1)
+        oled.hline(0,63,128,1)
+        oled.show()
+        time.sleep(0.06)
+        
+    for i in range(0,64,8): # Draws a spike
+        oled.line(63,64-i,127-i,63,0)
+        oled.line(63,64-i,i,63,0)
+        oled.vline(63,64-i,i,0)
+        oled.hline(0,63,128,1)
+        oled.show()
+        time.sleep(0.06)
+    
+    
+oled.show()
+time.sleep(delay)
+
+
 
 # while True:
 #     oled.vline(120,0,HEIGHT,1)
@@ -12,9 +37,9 @@ oled = SSD1306_I2C(128, 64, i2c)
 #         oled.scroll(-1,0)
 #         oled.show()
 
-oled.vline(64,0,HEIGHT,1)
-oled.hline(0,32,WIDTH,1)
-oled.show()
+# oled.vline(64,0,HEIGHT,1)
+# oled.hline(0,32,WIDTH,1)
+# oled.show()
 # 
 # oled.fill_rect(0, 0, 32, 32, 1)
 # oled.fill_rect(2, 2, 28, 28, 0)
