@@ -17,21 +17,27 @@ FIX_STATUS = False
 latitude = ""
 longitude = ""
 satellites = ""
+GPSdate = ""
 GPStime = ""
 
 def getGPS(gpsModule):
-    global FIX_STATUS, TIMEOUT, latitude, longitude, satellites, GPStime
+    global FIX_STATUS, TIMEOUT, latitude, longitude, satellites, GPSdate, GPStime
     
     timeout = time.time() + 8 
     while True:
         gpsModule.readline()
         buff = str(gpsModule.readline())
         parts = buff.split(',')
-    
+        #print(buff)
+
+        if (parts[0] == "b'$GPRMC" and len(parts) > 9):
+            if(parts[9]):
+                GPSdate = parts[9]   
+
         if (parts[0] == "b'$GPGGA" and len(parts) == 15):
             if(parts[1] and parts[2] and parts[3] and parts[4] and parts[5] and parts[6] and parts[7]):
                 
-          #      print(buff)
+                
                 latitude = convertToDegree(parts[2])
                 if (parts[3] == 'S'):
                     latitude = '-'+latitude
@@ -68,6 +74,7 @@ while True:
         print("Latitude: "+latitude)
         print("Longitude: "+longitude)
         print("Satellites: " +satellites)
+        print("Date: "+GPSdate)
         print("Time: "+GPStime)
         
         

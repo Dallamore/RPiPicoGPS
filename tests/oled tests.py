@@ -1,33 +1,37 @@
 from machine import Pin, I2C
 from ssd1306 import SSD1306_I2C
 import time
+import framebuf
+import utime
 WIDTH =128 
 HEIGHT= 64
 i2c=I2C(0,sda=Pin(20), scl=Pin(21), freq=400000)
 oled = SSD1306_I2C(128, 64, i2c)
 
-oled.fill(0)
-oled.hline(0,63,128,1)
-while True:
-    for i in range(0,64,8): # Draws a spike
-        oled.line(63,64-i,127-i,63,1)
-        oled.line(63,64-i,i,63,1)
-        oled.vline(63,64-i,i,1)
-        oled.hline(0,63,128,1)
-        oled.show()
-        time.sleep(0.06)
-        
-    for i in range(0,64,8): # Draws a spike
-        oled.line(63,64-i,127-i,63,0)
-        oled.line(63,64-i,i,63,0)
-        oled.vline(63,64-i,i,0)
-        oled.hline(0,63,128,1)
-        oled.show()
-        time.sleep(0.06)
-    
-    
+oled.text("Batt: 100%",49,57,1)
 oled.show()
-time.sleep(delay)
+
+# oled.hline(0,63,128,1)
+# while True:
+#     for i in range(0,64,8): # Draws a spike
+#         oled.line(63,64-i,127-i,63,1)
+#         oled.line(63,64-i,i,63,1)
+#         oled.vline(63,64-i,i,1)
+#         oled.hline(0,63,128,1)
+#         oled.show()
+#         time.sleep(0.06)
+#         
+#     for i in range(0,64,8): # Draws a spike
+#         oled.line(63,64-i,127-i,63,0)
+#         oled.line(63,64-i,i,63,0)
+#         oled.vline(63,64-i,i,0)
+#         oled.hline(0,63,128,1)
+#         oled.show()
+#         time.sleep(0.06)
+#     
+#     
+# oled.show()
+# time.sleep(delay)
 
 
 

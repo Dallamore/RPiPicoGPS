@@ -12,8 +12,8 @@ vsys = ADC(29)                      # reads the system input voltage
 charging = Pin(24, Pin.IN)          # reading GP24 tells us whether or not USB power is connected
 conversion_factor = 3 * 3.3 / 65535
 
-full_battery = 4.2                  # reference voltages for a full/empty battery, in volts
-empty_battery = 2.8                 # the values could vary by battery size/manufacturer so you might need to adjust them
+full_battery = 3.7                  # reference voltages for a full/empty battery, in volts
+empty_battery = 2.0                 # the values could vary by battery size/manufacturer so you might need to adjust them
 
 
 while True:
