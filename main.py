@@ -38,7 +38,13 @@ charging = Pin(24, Pin.IN)          # reading GP24 tells us whether or not USB p
 conversion_factor = 3 * 3.3 / 65535
 full_battery = 3.7                  # reference voltages for a full/empty battery, in volts
 empty_battery = 2.0
+
 StepTime = const(2)
+FilterRatio = const(0.1)
+LongRangeFilter = const(0.2)
+avgLat = 0
+avgLon = 0
+# newAvg = ((1.0-FilterRatio) * previousAvg) + (filterRatio * newestGPSpoint)
  
 led = Pin(25, Pin.OUT) 
  
@@ -53,7 +59,7 @@ GPSdate = ""
 GPStime = ""
 GPStime_ns = ""
 filePath = ""
-firstFixObtained = False
+fixCount = 0
 
 def getGPS(gpsModule):
     global FIX_STATUS, TIMEOUT, latitude, longitude, altitude, satellites, GPSdate, GPStime, GPStime_ns
@@ -156,10 +162,10 @@ def DisplayPower():
     # convert the raw ADC read into a voltage, and then a percentage
     voltage = vsys.read_u16() * conversion_factor
     percentage = 100 * ((voltage - empty_battery) / (full_battery - empty_battery))
-    if percentage > 100:
+    if (percentage < 0.0 or percentage > 100.0):
         percentage = 100
-    oled.text("Batt: " + str(percentage) + "%",50,57,1)
-    oled.show()
+    oled.text("Batt: " + str(percentage) + "%",45,57,1)
+    oled.show()    
     
  ##============ MAIN ====================================
 oled.fill(0)##show signs of life before main program starts
@@ -188,12 +194,25 @@ while True:
             alt = "Alt=\"" + altitude + "\" "
             print(ts+lat+lon+alt)
             
+            
+#             if(latitude):
+#             avgLat = ((1.0-FilterRatio) * avgLat) + (filterRatio * latitude)
+#             avgLon = ((1.0-FilterRatio) * avgLon) + (filterRatio * longitude)
+            
+            
+#USE LONGRANGE FILTER TO GET RID OF THE BIGGEST MISTAKES, AND MOVING AVERAGE TO SMOOTH OUT SMALLER MISTAKES
+#BOTH NEED A SEMI-ACCURATE AVERAGE AS BASE, HOW DO I ESTABLISH THIS BASE FIRST
+            print(fixCount)
+            avgLat = ((1.0-FilterRatio) * avgLat) + (FilterRatio * float(latitude))
+            avgLon = ((1.0-FilterRatio) * avgLon) + (FilterRatio * float(longitude))
+        
+            
             ##print GPS data to oled
             oled.fill(0)
-            oled.text("Time: "+GPStime, 0, 0)
-            oled.text("Lat: "+latitude, 0, 10)
-            oled.text("Lng: "+longitude, 0, 20)
-            oled.text("Sats: "+satellites, 0, 30)
+            oled.text("Time: "+ GPStime, 0, 0)
+            oled.text("Lat: " + latitude, 0, 10)
+            oled.text("Lng: " + longitude, 0, 20)
+            oled.text("Sats: " + satellites, 0, 30)
             oled.show()
             
             ##save to sd card
@@ -207,11 +226,15 @@ while True:
             
             ##signal end of GPS line
             FIX_STATUS = False
-            firstFixObtained = True
-            if(firstFixObtained == False):
+            if (fixCount < 10): #no point counting more than first 10
+                fixCount += 1
+                
+            if(fixCount == 0):
                 Print("No GPS yet")
+                
+            print('avglat: ' + str(avgLat) + ' avglon: ' + str(avgLon))            
             
-        if(TIMEOUT == True and firstFixObtained):
+        if(TIMEOUT == True and fixCount > 0):
             print("----------------------")
             print("No GPS data is found.")
             oled.text("No GPS data.", 0, 40)
