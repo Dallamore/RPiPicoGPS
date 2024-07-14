@@ -32,7 +32,7 @@ try:
 except OSError:
     sdCardReady = False
     
-##battery charge
+##battery charge - this doesn't work and I don't know why, my pico is return reading of 0.2v
 vsys = ADC(29)                      # reads the system input voltage
 charging = Pin(24, Pin.IN)          # reading GP24 tells us whether or not USB power is connected
 conversion_factor = 3 * 3.3 / 65535
@@ -40,12 +40,6 @@ full_battery = 3.7                  # reference voltages for a full/empty batter
 empty_battery = 2.0
 
 StepTime = const(2)
-FilterRatio = const(0.1)
-LongRangeFilter = const(0.2)
-avgLat = 0
-avgLon = 0
-# newAvg = ((1.0-FilterRatio) * previousAvg) + (filterRatio * newestGPSpoint)
- 
 led = Pin(25, Pin.OUT) 
  
 TIMEOUT = False
@@ -57,6 +51,7 @@ altitude = ""
 satellites = ""
 GPSdate = ""
 GPStime = ""
+GPStime_prev = ""
 GPStime_ns = ""
 filePath = ""
 fixCount = 0
@@ -70,10 +65,11 @@ def getGPS(gpsModule):
         buff = str(gpsModule.readline())
         parts = buff.split(',')
          
-        ##get the date
-        if (parts[0] == "b'$GPRMC" and len(parts) > 9):
-            if(parts[9]):
-                GPSdate = "20" + parts[9][4:6] + "-" + parts[9][2:4] + "-" + parts[9][0:2]
+        ##get the date if we don't have it already
+        if(UpdateDateRequired()):
+            if (parts[0] == "b'$GPRMC" and len(parts) > 9):
+                if(parts[9]):
+                    GPSdate = "20" + parts[9][4:6] + "-" + parts[9][2:4] + "-" + parts[9][0:2]
         ##get time, lat, long, sats
         if (parts[0] == "b'$GPGGA" and len(parts) == 15):
             if(parts[1] and parts[2] and parts[3] and parts[4] and parts[5] and parts[6] and parts[7]):
@@ -165,7 +161,16 @@ def DisplayPower():
     if (percentage < 0.0 or percentage > 100.0):
         percentage = 100
     oled.text("Batt: " + str(percentage) + "%",45,57,1)
-    oled.show()    
+    oled.show()
+    
+def UpdateDateRequired():
+    ## if GPStime_prev is 23 and GPStime is 00 then new day required
+    if((GPStime_prev[0:2] == "23" and GPStime[0:2] != "23")
+       or GPSdate.strip() == ""       
+       ):
+        return True
+    else:
+        return False
     
  ##============ MAIN ====================================
 oled.fill(0)##show signs of life before main program starts
@@ -192,20 +197,7 @@ while True:
             lat = "Lat=\"" + latitude + "\" "
             lon = "Lon=\"" + longitude + "\" "
             alt = "Alt=\"" + altitude + "\" "
-            print(ts+lat+lon+alt)
-            
-            
-#             if(latitude):
-#             avgLat = ((1.0-FilterRatio) * avgLat) + (filterRatio * latitude)
-#             avgLon = ((1.0-FilterRatio) * avgLon) + (filterRatio * longitude)
-            
-            
-#USE LONGRANGE FILTER TO GET RID OF THE BIGGEST MISTAKES, AND MOVING AVERAGE TO SMOOTH OUT SMALLER MISTAKES
-#BOTH NEED A SEMI-ACCURATE AVERAGE AS BASE, HOW DO I ESTABLISH THIS BASE FIRST
-            print(fixCount)
-            avgLat = ((1.0-FilterRatio) * avgLat) + (FilterRatio * float(latitude))
-            avgLon = ((1.0-FilterRatio) * avgLon) + (FilterRatio * float(longitude))
-        
+            print(ts+lat+lon+alt)       
             
             ##print GPS data to oled
             oled.fill(0)
@@ -217,12 +209,16 @@ while True:
             
             ##save to sd card
             led.on()
-            if (filePath == "" and GPSdate != ""):                
-                filePath = "/sd/incomplete_" + GPSdate + GPStime_ns + ".gpx"
-                SetupNewFile()
-            else:
-                if(filePath != ""):
-                    AddToFile()
+            if(len(GPSdate) > 4):
+                if (filePath == ""):                
+                    filePath = "/sd/incomplete_" + GPSdate + GPStime_ns + ".gpx"
+                    SetupNewFile()
+                else:
+                    if(filePath != ""):
+                        AddToFile()
+                print(GPStime + "  &  " + GPStime_prev)
+                GPStime_prev = GPStime
+            
             
             ##signal end of GPS line
             FIX_STATUS = False
@@ -230,9 +226,7 @@ while True:
                 fixCount += 1
                 
             if(fixCount == 0):
-                Print("No GPS yet")
-                
-            print('avglat: ' + str(avgLat) + ' avglon: ' + str(avgLon))            
+                Print("No GPS yet")     
             
         if(TIMEOUT == True and fixCount > 0):
             print("----------------------")
@@ -244,3 +238,4 @@ while True:
         oled.fill(0)
         oled.text("No SD Card",25,15,1)
         oled.text("Restart required",0,35,1)
+        print("No SD Card")
