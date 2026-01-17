@@ -23,5 +23,5 @@ while True:
     if percentage > 100:
         percentage = 100
         
-    print('voltage: ' + str(voltage) + ' / ' + str(percentage) + '%')
-    time.sleep(10)
+    print('charging: ' + str(charging) + ' / voltage: ' + str(voltage) + ' / ' + str(percentage) + '%')
+    time.sleep(5)
